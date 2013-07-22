@@ -16,22 +16,35 @@ The output format is JSON with one object per line. Each object has
 fields `exportTime` (UNIX epoch seconds), `templateId` and `elements`.
 The latter is a dict containing the information elements as `field: value`.
 
-Unless a dictionary is loaded, the field name will be `F<fieldId>` for
-standard fields or `V<vendorId>.<fieldId>` for vendor specific fields.
-Values are byte arrays unless converted by a dictionary (the IPFIX
-stream contains no type information).
+Standard fields are interpreted with name and value type. Vendor fields
+display as `F[vendor,field]` with a byte array as value. A custom
+dictionary can be loaded to support vendor fields; see
+`procera-fields.ini` included.
+
+Until a template set has been received all datasets will display without
+elements (because they can't be interpreted). If the session is over
+TCP, template sets should be sent before any data sets. For UDP data,
+template sets will be sent periodically.
 
 Examples
 --------
 
-Parse a UDP IPFIX stream.
+Parse a UDP IPFIX stream. Note the empty data sets prior to having
+received templates.
 
     $ socat udp-recv:4739 stdout | ipfixcat
-    {"elements":{},"exportTime":1374483650,"templateId":49836}
-    {"elements":{},"exportTime":1374483650,"templateId":49836}
-    {"elements":{},"exportTime":1374483655,"templateId":49836}
-    {"elements":{"F12":[172,16,32,15],"F8":[59,91,233,213],"V15397.1":[66,105,116,84,111,114,114,101,110,116,32,75,82,80,67],"V15397.12":[0,0,0,0],"V15397.18":[],"V15397.28":[],"V15397.3":[0,0,0,0,0,0,0,145],"V15397.4":[0,0,0,0,0,0,1,54]},"exportTime":1374483660,"templateId":49836}
-    {"elements":{"F12":[172,16,32,15],"F8":[223,204,77,117],"V15397.1":[66,105,116,84,111,114,114,101,110,116,32,75,82,80,67],"V15397.12":[0,0,0,0],"V15397.18":[],"V15397.28":[],"V15397.3":[0,0,0,0,0,0,0,145],"V15397.4":[0,0,0,0,0,0,1,54]},"exportTime":1374483660,"templateId":49836}
+    {"elements":null,"exportTime":1374494095,"templateId":49836}
+    {"elements":null,"exportTime":1374494100,"templateId":49836}
+    {"elements":{"F[15397.12]":[0,0,0,0],"F[15397.18]":[],"F[15397.1]":[66,105,116,84,111,114,114,101,110,116,32,75,82,...
+    {"elements":{"F[15397.12]":[0,0,0,0],"F[15397.18]":[],"F[15397.1]":[68,114,111,112,98,111,120,32,76,65,78,32,115,12...
+    ...
+
+Use a custom dictionary to interpret vendor fields.
+
+    $ socat udp-recv:4739 stdout | ipfixcat -dict $GOPATH/src/github.com/calmh/ipfixcat/procera-fields.ini 
+    {"elements":{"destinationIPv4Address":"172.16.32.15","proceraExternalRtt":47,"proceraIncomingOctets":146,"proeraOut...
+    {"elements":{"destinationIPv4Address":"172.16.32.15","proceraExternalRtt":3,"proceraIncomingOctets":140,"proceraOut...
+    {"elements":{"destinationIPv4Address":"172.16.32.15","proceraExternalRtt":4,"proceraIncomingOctets":642,"proceraOut...
     ...
 
 Don't attempt to use netcat (`nc`). Almost all distributed versions are

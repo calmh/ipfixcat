@@ -1,18 +1,18 @@
 package main
 
 import (
+	"code.google.com/p/gcfg"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/calmh/ipfix"
 	"os"
-	"code.google.com/p/gcfg"
-	"flag"
 )
 
 type Field struct {
-	Id uint16
+	Id         uint16
 	Enterprise uint32
-	Type ipfix.FieldType
+	Type       ipfix.FieldType
 }
 
 type UserDictionary struct {
@@ -36,7 +36,6 @@ func main() {
 			s.AddDictionaryEntry(e)
 		}
 	}
-
 
 	for {
 		msg, err := s.ReadMessage()
