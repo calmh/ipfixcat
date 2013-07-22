@@ -2,10 +2,13 @@ ipfixcat
 ========
 
 `ipfixcat` is a utility to parse and print an IPFIX stream, as defined by
-RFC 5101.
+RFC 5101. It's also the minimal demo of how to use the
+github.com/calmh/ipfix package.
 
 Installation
 ------------
+
+Make sure you have Go 1.1 installed. See http://golang.org/doc/install.
 
     $ go install github.com/calmh/ipfixcat
 
@@ -49,3 +52,8 @@ Use a custom dictionary to interpret vendor fields.
 
 Don't attempt to use netcat (`nc`). Almost all distributed versions are
 broken and truncate UDP packets at 1024 bytes.
+
+License
+-------
+
+MIT
