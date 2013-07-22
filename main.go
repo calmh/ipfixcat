@@ -5,10 +5,38 @@ import (
 	"fmt"
 	"github.com/calmh/ipfix"
 	"os"
+	"code.google.com/p/gcfg"
+	"flag"
 )
 
+type Field struct {
+	Id uint16
+	Enterprise uint32
+	Type ipfix.FieldType
+}
+
+type UserDictionary struct {
+	Field map[string]*Field
+}
+
 func main() {
+	dictFile := flag.String("dict", "", "User dictionary file")
+	flag.Parse()
+
 	s := ipfix.NewSession(os.Stdin)
+
+	if *dictFile != "" {
+		dict := UserDictionary{}
+		err := gcfg.ReadFileInto(&dict, *dictFile)
+		if err != nil {
+			panic(err)
+		}
+		for name, entry := range dict.Field {
+			e := ipfix.DictionaryEntry{Name: name, FieldId: entry.Id, EnterpriseId: entry.Enterprise, Type: entry.Type}
+			s.AddDictionaryEntry(e)
+		}
+	}
+
 
 	for {
 		msg, err := s.ReadMessage()
@@ -20,22 +48,7 @@ func main() {
 			set := make(map[string]interface{})
 			set["templateId"] = ds.TemplateId
 			set["exportTime"] = msg.Header.ExportTime
-			elements := make(map[string]interface{})
-			set["elements"] = elements
-
-			if tpl := s.Templates[ds.TemplateId]; tpl != nil {
-				for i, field := range tpl {
-					var fieldName string
-					if field.EnterpriseId > 0 {
-						fieldName = fmt.Sprintf("V%d.%d", field.EnterpriseId, field.FieldId)
-					} else {
-						fieldName = fmt.Sprintf("F%d", field.FieldId)
-					}
-
-					// json.Marshal will format a []byte as base64 string, but []int as integer array.
-					elements[fieldName] = integers(ds.Records[i])
-				}
-			}
+			set["elements"] = s.Interpret(&ds)
 			bs, err := json.Marshal(set)
 			if err != nil {
 				panic(err)
@@ -43,12 +56,4 @@ func main() {
 			fmt.Println(string(bs))
 		}
 	}
-}
-
-func integers(s []byte) []int {
-	r := make([]int, len(s))
-	for i := range s {
-		r[i] = int(s[i])
-	}
-	return r
 }
