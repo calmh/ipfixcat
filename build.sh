@@ -3,6 +3,8 @@
 version="$(git describe --always)"
 name="ipfixcat-$version"
 
+echo "package main" > $GOPATH/src/github.com/calmh/ipfixcat/version.go
+echo "var ipfixcatVersion = \"$version\"" >> $GOPATH/src/github.com/calmh/ipfixcat/version.go
 rm $GOPATH/bin/ipfixcat
 go install github.com/calmh/ipfixcat
 mkdir $name
