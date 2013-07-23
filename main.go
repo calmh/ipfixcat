@@ -1,23 +1,12 @@
 package main
 
 import (
-	"code.google.com/p/gcfg"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/calmh/ipfix"
 	"os"
 )
-
-type Field struct {
-	Id         uint16
-	Enterprise uint32
-	Type       ipfix.FieldType
-}
-
-type UserDictionary struct {
-	Field map[string]*Field
-}
 
 func main() {
 	dictFile := flag.String("dict", "", "User dictionary file")
@@ -26,15 +15,7 @@ func main() {
 	s := ipfix.NewSession(os.Stdin)
 
 	if *dictFile != "" {
-		dict := UserDictionary{}
-		err := gcfg.ReadFileInto(&dict, *dictFile)
-		if err != nil {
-			panic(err)
-		}
-		for name, entry := range dict.Field {
-			e := ipfix.DictionaryEntry{Name: name, FieldId: entry.Id, EnterpriseId: entry.Enterprise, Type: entry.Type}
-			s.AddDictionaryEntry(e)
-		}
+		loadUserDictionary(*dictFile, s)
 	}
 
 	for {
@@ -43,15 +24,17 @@ func main() {
 			panic(err)
 		}
 
-		for _, ds := range msg.DataSets {
+		for _, record := range msg.DataRecords {
 			set := make(map[string]interface{})
-			set["templateId"] = ds.TemplateId
+			set["templateId"] = record.TemplateId
 			set["exportTime"] = msg.Header.ExportTime
-			set["elements"] = s.Interpret(&ds)
+			set["elements"] = s.Interpret(&record)
+
 			bs, err := json.Marshal(set)
 			if err != nil {
 				panic(err)
 			}
+
 			fmt.Println(string(bs))
 		}
 	}
