@@ -16,15 +16,12 @@ type TrafStats struct {
 	OutKbps int
 }
 
-func accountTraffic(set recordMap) {
-	if elems, ok := set["elements"]; ok {
-		// Account the in/out traffic rate if we have Procera Networks vendor fields available.
-		elems := elems.(map[string]interface{})
-		if in, ok := elems["proceraIncomingOctets"]; ok {
-			inOctets += in.(uint64)
-		}
-		if out, ok := elems["proceraOutgoingOctets"]; ok {
-			outOctets += out.(uint64)
+func accountTraffic(rec InterpretedRecord) {
+	for _, f := range rec.Fields {
+		if f.Name == "proceraIncomingOctets" {
+			inOctets += f.Value.(uint64)
+		} else if f.Name == "proceraOutgoingOctets" {
+			outOctets += f.Value.(uint64)
 		}
 	}
 }

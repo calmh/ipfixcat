@@ -10,28 +10,43 @@ import (
 	"time"
 )
 
-type recordMap map[string]interface{}
+type InterpretedRecord struct {
+	ExportTime uint32               `json:"exportTime"`
+	TemplateId uint16               `json:"templateId"`
+	Fields     []myInterpretedField `json:"fields"`
+}
 
-func messagesGenerator(s *ipfix.Session) <-chan []recordMap {
-	c := make(chan []recordMap)
+// Because we want to control JSON serialization
+type myInterpretedField struct {
+	Name         string      `json:"name"`
+	EnterpriseId uint32      `json:"enterprise,omitempty"`
+	FieldId      uint16      `json:"field"`
+	Value        interface{} `json:"value,omitempty"`
+	RawValue     []byte      `json:"raw,omitempty"`
+}
+
+func messagesGenerator(s *ipfix.Session) <-chan []InterpretedRecord {
+	c := make(chan []InterpretedRecord)
 
 	go func() {
 		for {
-			sets := make([]recordMap, 0, 32)
 			msg, err := s.ReadMessage()
 			if err != nil {
 				panic(err)
 			}
 
-			for _, record := range msg.DataRecords {
-				set := make(map[string]interface{})
-				set["templateId"] = record.TemplateId
-				set["exportTime"] = msg.Header.ExportTime
-				set["elements"] = s.Interpret(&record)
-				sets = append(sets, set)
+			irecs := make([]InterpretedRecord, len(msg.DataRecords))
+			for i, record := range msg.DataRecords {
+				ifs := s.Interpret(&record)
+				mfs := make([]myInterpretedField, len(ifs))
+				for i, iif := range ifs {
+					mfs[i] = myInterpretedField{iif.Name, iif.EnterpriseId, iif.FieldId, iif.Value, iif.RawValue}
+				}
+				ir := InterpretedRecord{msg.Header.ExportTime, record.TemplateId, mfs}
+				irecs[i] = ir
 			}
 
-			c <- sets
+			c <- irecs
 		}
 	}()
 
@@ -74,18 +89,18 @@ func main() {
 	tick := time.Tick(time.Duration(*statsIntv) * time.Second)
 	for {
 		select {
-		case sets := <-msgs:
+		case irecs := <-msgs:
 			if *messageStats {
-				accountMsgStats(sets)
+				accountMsgStats(irecs)
 			}
 
-			for _, set := range sets {
+			for _, rec := range irecs {
 				if *trafficStats {
-					accountTraffic(set)
+					accountTraffic(rec)
 				}
 
 				if *output {
-					bs, _ := json.Marshal(set)
+					bs, _ := json.Marshal(rec)
 					fmt.Println(string(bs))
 				}
 			}

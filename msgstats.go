@@ -11,9 +11,9 @@ var (
 	msgs    int
 )
 
-func accountMsgStats(sets []recordMap) {
+func accountMsgStats(recs []InterpretedRecord) {
 	msgs++
-	records += len(sets)
+	records += len(recs)
 }
 
 type MsgStats struct {
