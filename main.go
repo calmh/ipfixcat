@@ -22,7 +22,7 @@ type myInterpretedField struct {
 	EnterpriseId uint32      `json:"enterprise,omitempty"`
 	FieldId      uint16      `json:"field"`
 	Value        interface{} `json:"value,omitempty"`
-	RawValue     []byte      `json:"raw,omitempty"`
+	RawValue     []int       `json:"raw,omitempty"`
 }
 
 func messagesGenerator(s *ipfix.Session) <-chan []InterpretedRecord {
@@ -40,7 +40,7 @@ func messagesGenerator(s *ipfix.Session) <-chan []InterpretedRecord {
 				ifs := s.Interpret(&record)
 				mfs := make([]myInterpretedField, len(ifs))
 				for i, iif := range ifs {
-					mfs[i] = myInterpretedField{iif.Name, iif.EnterpriseId, iif.FieldId, iif.Value, iif.RawValue}
+					mfs[i] = myInterpretedField{iif.Name, iif.EnterpriseId, iif.FieldId, iif.Value, integers(iif.RawValue)}
 				}
 				ir := InterpretedRecord{msg.Header.ExportTime, record.TemplateId, mfs}
 				irecs[i] = ir
@@ -118,4 +118,16 @@ func main() {
 			}
 		}
 	}
+}
+
+func integers(s []byte) []int {
+	if s == nil {
+		return nil
+	}
+
+	r := make([]int, len(s))
+	for i := range s {
+		r[i] = int(s[i])
+	}
+	return r
 }
