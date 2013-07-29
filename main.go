@@ -100,6 +100,14 @@ func main() {
 				}
 
 				if *output {
+					for i := range rec.Fields {
+						f := &rec.Fields[i]
+						switch v := f.Value.(type) {
+						case []byte:
+							f.RawValue = integers(v)
+							f.Value = nil
+						}
+					}
 					bs, _ := json.Marshal(rec)
 					fmt.Println(string(bs))
 				}
