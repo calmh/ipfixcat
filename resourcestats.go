@@ -16,9 +16,9 @@ var (
 )
 
 type MemStats struct {
-	AllocKB       int
+	AllocKB   int
 	AllocKBps int
-	GCPerMin        int
+	GCPerMin  int
 	Gortns    int
 }
 
