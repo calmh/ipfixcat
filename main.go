@@ -28,11 +28,20 @@ type myInterpretedField struct {
 func messagesGenerator(s *ipfix.Session) <-chan []InterpretedRecord {
 	c := make(chan []InterpretedRecord)
 
+	errors := 0
 	go func() {
 		for {
 			msg, err := s.ReadMessage()
 			if err != nil {
-				panic(err)
+				errors++
+				if errors > 3 {
+					panic(err)
+				} else {
+					log.Println(err)
+				}
+				continue
+			} else {
+				errors = 0
 			}
 
 			irecs := make([]InterpretedRecord, len(msg.DataRecords))
