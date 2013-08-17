@@ -1,3 +1,2 @@
 package main
-
-var ipfixcatVersion = "(development master)"
+var ipfixcatVersion = "v0.2.1"

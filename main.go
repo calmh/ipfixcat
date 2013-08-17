@@ -25,7 +25,7 @@ type myInterpretedField struct {
 	RawValue     []int       `json:"raw,omitempty"`
 }
 
-func messagesGenerator(s *ipfix.Session) <-chan []InterpretedRecord {
+func messagesGenerator(s *ipfix.Session, i *ipfix.Interpreter) <-chan []InterpretedRecord {
 	c := make(chan []InterpretedRecord)
 
 	errors := 0
@@ -45,14 +45,14 @@ func messagesGenerator(s *ipfix.Session) <-chan []InterpretedRecord {
 			}
 
 			irecs := make([]InterpretedRecord, len(msg.DataRecords))
-			for i, record := range msg.DataRecords {
-				ifs := s.Interpret(&record)
+			for j, record := range msg.DataRecords {
+				ifs := i.Interpret(&record)
 				mfs := make([]myInterpretedField, len(ifs))
-				for i, iif := range ifs {
-					mfs[i] = myInterpretedField{iif.Name, iif.EnterpriseId, iif.FieldId, iif.Value, integers(iif.RawValue)}
+				for k, iif := range ifs {
+					mfs[k] = myInterpretedField{iif.Name, iif.EnterpriseId, iif.FieldId, iif.Value, integers(iif.RawValue)}
 				}
 				ir := InterpretedRecord{msg.Header.ExportTime, record.TemplateId, mfs}
-				irecs[i] = ir
+				irecs[j] = ir
 			}
 
 			c <- irecs
@@ -89,12 +89,13 @@ func main() {
 	}
 
 	s := ipfix.NewSession(os.Stdin)
+	i := ipfix.NewInterpreter(s)
 
 	if *dictFile != "" {
-		loadUserDictionary(*dictFile, s)
+		loadUserDictionary(*dictFile, i)
 	}
 
-	msgs := messagesGenerator(s)
+	msgs := messagesGenerator(s, i)
 	tick := time.Tick(time.Duration(*statsIntv) * time.Second)
 	for {
 		select {

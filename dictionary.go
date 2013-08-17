@@ -15,7 +15,7 @@ type UserDictionary struct {
 	Field map[string]*Field
 }
 
-func loadUserDictionary(fname string, s *ipfix.Session) {
+func loadUserDictionary(fname string, i *ipfix.Interpreter) {
 	dict := UserDictionary{}
 	err := gcfg.ReadFileInto(&dict, fname)
 	if err != nil {
@@ -24,6 +24,6 @@ func loadUserDictionary(fname string, s *ipfix.Session) {
 
 	for name, entry := range dict.Field {
 		e := ipfix.DictionaryEntry{Name: name, FieldId: entry.Id, EnterpriseId: entry.Enterprise, Type: entry.Type}
-		s.AddDictionaryEntry(e)
+		i.AddDictionaryEntry(e)
 	}
 }
