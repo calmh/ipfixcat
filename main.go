@@ -66,7 +66,6 @@ func main() {
 	log.Println("ipfixcat", ipfixcatVersion)
 	dictFile := flag.String("dict", "", "User dictionary file")
 	messageStats := flag.Bool("mstats", false, "Log IPFIX message statistics")
-	resourceStats := flag.Bool("rstats", false, "Log resource usage (CPU, memory)")
 	trafficStats := flag.Bool("acc", false, "Log traffic rates (Procera)")
 	output := flag.Bool("output", true, "Display received flow records in JSON format")
 	statsIntv := flag.Int("statsintv", 60, "Statistics log interval (s)")
@@ -76,15 +75,11 @@ func main() {
 		log.Printf("Logging message statistics every %d seconds", *statsIntv)
 	}
 
-	if *resourceStats {
-		log.Printf("Logging resource statistics every %d seconds", *statsIntv)
-	}
-
 	if *trafficStats {
 		log.Printf("Logging traffic rates every %d seconds", *statsIntv)
 	}
 
-	if !*messageStats && !*resourceStats && !*trafficStats && !*output {
+	if !*messageStats && !*trafficStats && !*output {
 		log.Fatal("If you don't want me to do anything, don't run me at all.")
 	}
 
@@ -129,10 +124,6 @@ func main() {
 
 			if *trafficStats {
 				logAccountedTraffic()
-			}
-
-			if *resourceStats {
-				logResourceUsage()
 			}
 		}
 	}
