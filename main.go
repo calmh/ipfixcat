@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+var ipfixcatVersion string
+
 type InterpretedRecord struct {
 	ExportTime uint32               `json:"exportTime"`
 	TemplateId uint16               `json:"templateId"`
