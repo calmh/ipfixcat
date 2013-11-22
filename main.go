@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/calmh/ipfix"
+	"io"
 	"log"
 	"os"
 	"time"
+
+	"github.com/calmh/ipfix"
 )
 
 var ipfixcatVersion string
@@ -34,6 +36,10 @@ func messagesGenerator(s *ipfix.Session, i *ipfix.Interpreter) <-chan []Interpre
 	go func() {
 		for {
 			msg, err := s.ReadMessage()
+			if err == io.EOF {
+				close(c)
+				return
+			}
 			if err != nil {
 				errors++
 				if errors > 3 {
@@ -96,7 +102,10 @@ func main() {
 	tick := time.Tick(time.Duration(*statsIntv) * time.Second)
 	for {
 		select {
-		case irecs := <-msgs:
+		case irecs, ok := <-msgs:
+			if !ok {
+				return
+			}
 			if *messageStats {
 				accountMsgStats(irecs)
 			}
