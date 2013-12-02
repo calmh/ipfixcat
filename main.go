@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -100,6 +99,7 @@ func main() {
 
 	msgs := messagesGenerator(s, i)
 	tick := time.Tick(time.Duration(*statsIntv) * time.Second)
+	enc := json.NewEncoder(os.Stdout)
 	for {
 		select {
 		case irecs, ok := <-msgs:
@@ -124,8 +124,7 @@ func main() {
 							f.Value = nil
 						}
 					}
-					bs, _ := json.Marshal(rec)
-					fmt.Println(string(bs))
+					enc.Encode(rec)
 				}
 			}
 		case <-tick:
