@@ -94,7 +94,9 @@ func main() {
 	i := ipfix.NewInterpreter(s)
 
 	if *dictFile != "" {
-		loadUserDictionary(*dictFile, i)
+		if err := loadUserDictionary(*dictFile, i); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	msgs := messagesGenerator(s, i)

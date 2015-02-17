@@ -8,22 +8,32 @@ import (
 type Field struct {
 	Id         uint16
 	Enterprise uint32
-	Type       ipfix.FieldType
+	Type       string
+}
+
+func (f Field) DictionaryEntry(name string) ipfix.DictionaryEntry {
+	return ipfix.DictionaryEntry{
+		Name:         name,
+		EnterpriseId: f.Enterprise,
+		FieldId:      f.Id,
+		Type:         ipfix.FieldTypes[f.Type],
+	}
 }
 
 type UserDictionary struct {
 	Field map[string]*Field
 }
 
-func loadUserDictionary(fname string, i *ipfix.Interpreter) {
+func loadUserDictionary(fname string, i *ipfix.Interpreter) error {
 	dict := UserDictionary{}
 	err := gcfg.ReadFileInto(&dict, fname)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	for name, entry := range dict.Field {
-		e := ipfix.DictionaryEntry{Name: name, FieldId: entry.Id, EnterpriseId: entry.Enterprise, Type: entry.Type}
-		i.AddDictionaryEntry(e)
+		i.AddDictionaryEntry(entry.DictionaryEntry(name))
 	}
+
+	return nil
 }
