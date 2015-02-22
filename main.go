@@ -28,13 +28,13 @@ type myInterpretedField struct {
 	RawValue     []int       `json:"raw,omitempty"`
 }
 
-func messagesGenerator(s *ipfix.Session, i *ipfix.Interpreter) <-chan []InterpretedRecord {
+func messagesGenerator(r io.Reader, s *ipfix.Session, i *ipfix.Interpreter) <-chan []InterpretedRecord {
 	c := make(chan []InterpretedRecord)
 
 	errors := 0
 	go func() {
 		for {
-			msg, err := s.ReadMessage()
+			msg, err := s.ReadMessage(r)
 			if err == io.EOF {
 				close(c)
 				return
@@ -90,7 +90,7 @@ func main() {
 		log.Fatal("If you don't want me to do anything, don't run me at all.")
 	}
 
-	s := ipfix.NewSession(os.Stdin)
+	s := ipfix.NewSession()
 	i := ipfix.NewInterpreter(s)
 
 	if *dictFile != "" {
@@ -99,7 +99,7 @@ func main() {
 		}
 	}
 
-	msgs := messagesGenerator(s, i)
+	msgs := messagesGenerator(os.Stdin, s, i)
 	tick := time.Tick(time.Duration(*statsIntv) * time.Second)
 	enc := json.NewEncoder(os.Stdout)
 	for {
