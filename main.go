@@ -34,7 +34,7 @@ func messagesGenerator(r io.Reader, s *ipfix.Session, i *ipfix.Interpreter) <-ch
 	errors := 0
 	go func() {
 		for {
-			msg, err := s.ReadMessage(r)
+			msg, err := s.ParseReader(r)
 			if err == io.EOF {
 				close(c)
 				return
