@@ -6,7 +6,7 @@ import (
 )
 
 type Field struct {
-	Id         uint16
+	ID         uint16
 	Enterprise uint32
 	Type       string
 }
@@ -14,8 +14,8 @@ type Field struct {
 func (f Field) DictionaryEntry(name string) ipfix.DictionaryEntry {
 	return ipfix.DictionaryEntry{
 		Name:         name,
-		EnterpriseId: f.Enterprise,
-		FieldId:      f.Id,
+		EnterpriseID: f.Enterprise,
+		FieldID:      f.ID,
 		Type:         ipfix.FieldTypes[f.Type],
 	}
 }

@@ -56,9 +56,9 @@ func messagesGenerator(r io.Reader, s *ipfix.Session, i *ipfix.Interpreter) <-ch
 				ifs := i.Interpret(record)
 				mfs := make([]myInterpretedField, len(ifs))
 				for k, iif := range ifs {
-					mfs[k] = myInterpretedField{iif.Name, iif.EnterpriseId, iif.FieldId, iif.Value, integers(iif.RawValue)}
+					mfs[k] = myInterpretedField{iif.Name, iif.EnterpriseID, iif.FieldID, iif.Value, integers(iif.RawValue)}
 				}
-				ir := InterpretedRecord{msg.Header.ExportTime, record.TemplateId, mfs}
+				ir := InterpretedRecord{msg.Header.ExportTime, record.TemplateID, mfs}
 				irecs[j] = ir
 			}
 
