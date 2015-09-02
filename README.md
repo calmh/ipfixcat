@@ -1,5 +1,7 @@
 # ipfixcat
---
+
+[![Build Status](https://img.shields.io/circleci/project/calmh/ipfixcat.svg?style=flat-square)](https://circleci.com/gh/calmh/ipfixcat)
+
 `ipfixcat` is a utility to parse and print an IPFIX stream, as defined by RFC
 5101. It's also the minimal demo of how to use the github.com/calmh/ipfix
 package.
