@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 BIN=ipfixcat
 VER=$(git describe --always)
@@ -6,14 +7,14 @@ VER=$(git describe --always)
 case "$1" in
 	pkg)
 		rm -f *.tar.gz *.zip
-		for GOARCH in amd64 386 ; do
+		for GOARCH in amd64 ; do
 			for GOOS in darwin linux freebsd solaris ; do
 				export GOOS
 				export GOARCH
 
 				NAME="$BIN-${VER}_$GOOS-$GOARCH"
 				rm -rf "$NAME" "$NAME.tar.gz" "$BIN" "$BIN.exe"
-				go build -ldflags "-X main.ipfixcatVersion ${VER}"
+				go build -ldflags "-X main.ipfixcatVersion=${VER}"
 
 				mkdir "$NAME"
 				cp *.ini ipfixcat "$NAME" && tar zcf "$NAME.tar.gz" "$NAME"
@@ -26,7 +27,7 @@ case "$1" in
 
 				NAME="$BIN-${VER}_$GOOS-$GOARCH"
 				rm -rf "$NAME" "$NAME.tar.gz" "$BIN" "$BIN.exe"
-				go build -ldflags "-X main.ipfixcatVersion ${VER}"
+				go build -ldflags "-X main.ipfixcatVersion=${VER}"
 
 				mkdir "$NAME"
 				cp *.ini ipfixcat.exe "$NAME" && zip -r "$NAME.zip" "$NAME"
